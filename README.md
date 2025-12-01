@@ -95,4 +95,5 @@ Proprietary - All rights reserved
 
 ## Contact
 
-[Your contact info]
+Jessica Poole (creator/designer)
+iamjessicapoole@gmail.com
