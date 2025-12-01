@@ -1,4 +1,4 @@
-# PeriHealth MD Dashboard
+# MyAccess - MD Dashboard
 
 **Clinical Decision Support System with AI-Assisted Differential Diagnosis**
 
