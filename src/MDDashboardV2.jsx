@@ -379,61 +379,242 @@ const patientData = {
   ],
 };
 
-// Differential diagnosis
+// Differential diagnosis with full clinical detail
 const differentialDiagnosis = [
   {
     diagnosis: 'Perimenopause / Menopause Transition',
     icd10: 'N95.1',
-    confidence: 92,
-    aiAccuracy: 94,
-    reasoning: 'Age 47, FSH elevated (28), declining estradiol trend, classic symptom cluster, multi-system involvement pattern (MSK, cardiac, oral, cognitive, mood), family history of early menopause',
+    likelihoodRatio: 12.4,
+    confidenceInterval: '8.2 - 18.7',
+    aiConfidence: 94,
+    reasoning: 'Age 47, FSH elevated (28), declining estradiol trend, classic symptom cluster, multi-system involvement pattern (MSK, cardiac, oral, cognitive, mood), family history of early menopause in sister (age 44).',
+    
+    // Symptom incidence - how often each symptom appears in this diagnosis
+    symptomIncidence: [
+      { symptom: 'Sleep disruption / 3am waking', patientHas: true, incidence: 84, note: 'One of the earliest and most persistent symptoms' },
+      { symptom: 'Vasomotor symptoms (hot flashes, night sweats)', patientHas: true, incidence: 80, note: 'Hallmark symptom, though not required for diagnosis' },
+      { symptom: 'Mood changes / irritability', patientHas: true, incidence: 70, note: 'Often precedes vasomotor symptoms' },
+      { symptom: 'Cognitive changes (brain fog)', patientHas: true, incidence: 62, note: 'Correlates with estradiol fluctuation' },
+      { symptom: 'Irregular menstrual cycles', patientHas: false, incidence: 90, note: 'Patient still regular — early perimenopause' },
+      { symptom: 'Joint/muscle pain', patientHas: true, incidence: 54, note: 'Under-recognized; estrogen receptors in MSK tissue' },
+      { symptom: 'Palpitations', patientHas: true, incidence: 42, note: 'Often misattributed to anxiety' },
+      { symptom: 'Weight gain', patientHas: true, incidence: 60, note: 'Metabolic shift with declining estrogen' },
+      { symptom: 'Decreased libido', patientHas: false, incidence: 52, note: 'Not reported by patient' },
+    ],
+    
     supportingEvidence: [
       { type: 'lab', text: 'FSH 28 mIU/mL — 250% above personal baseline' },
-      { type: 'lab', text: 'Estradiol 95 — 34% below personal baseline' },
-      { type: 'lab', text: 'AMH 0.8 — diminished ovarian reserve' },
+      { type: 'lab', text: 'Estradiol 95 pg/mL — 34% below personal baseline' },
+      { type: 'lab', text: 'AMH 0.8 ng/mL — diminished ovarian reserve' },
       { type: 'pattern', text: 'AI: Musculoskeletal cluster (89% confidence)' },
       { type: 'pattern', text: 'AI: Cardiovascular correlation (82% confidence)' },
-      { type: 'pattern', text: 'AI: Metabolic shift pattern (85% confidence)' },
-      { type: 'symptom', text: 'Sleep disruption (3am waking) — 5/7 days' },
-      { type: 'symptom', text: 'Cognitive changes (brain fog) — 4/7 days' },
       { type: 'history', text: 'Sister with early menopause (age 44)' },
+      { type: 'age', text: 'Age 47 — within typical perimenopause window (45-55)' },
     ],
     againstEvidence: [
       { type: 'history', text: 'Still having regular periods' },
     ],
+    
+    // Assessment criteria for ruling in/out
+    assessmentCriteria: {
+      ruleIn: [
+        { criterion: 'STRAW+10 Stage -2 or beyond', status: 'likely', description: 'Variable cycle length, elevated FSH, declining AMH' },
+        { criterion: 'FSH > 25 mIU/mL on day 2-4', status: 'met', description: 'FSH 28 mIU/mL (patient baseline was 8)' },
+        { criterion: 'Estradiol declining trend', status: 'met', description: '145 → 128 → 112 → 95 pg/mL over 8 months' },
+        { criterion: 'Symptom cluster consistent with estrogen withdrawal', status: 'met', description: 'Sleep, mood, cognitive, vasomotor symptoms present' },
+      ],
+      ruleOut: [
+        { criterion: 'Thyroid dysfunction excluded', status: 'pending', description: 'TSH/Free T4 results pending — required before confirming' },
+        { criterion: 'Primary psychiatric disorder excluded', status: 'likely', description: 'Symptoms correlate with hormone changes, stable on current SSRI' },
+        { criterion: 'Other endocrine disorders excluded', status: 'met', description: 'No signs of adrenal, pituitary, or other dysfunction' },
+      ],
+    },
+    
+    recommendedWorkup: [
+      { test: 'TSH + Free T4', priority: 'high', rationale: 'Rule out thyroid dysfunction (results pending)' },
+      { test: 'Repeat FSH/Estradiol', priority: 'medium', rationale: 'Confirm pattern if diagnosis uncertain' },
+      { test: 'Mammogram', priority: 'high', rationale: 'Required before HRT initiation; family history of breast cancer' },
+      { test: 'DEXA scan', priority: 'medium', rationale: 'Baseline bone density given family history of osteoporosis' },
+    ],
+    
+    clinicalDecisionSteps: [
+      { step: 1, action: 'Confirm thyroid results are normal', status: 'pending' },
+      { step: 2, action: 'Complete menstrual history assessment', status: 'pending', questions: ['LMP?', 'Cycle length changes past 12 months?', 'Flow changes?'] },
+      { step: 3, action: 'Assess vasomotor symptom severity (Greene Climacteric Scale or similar)', status: 'pending' },
+      { step: 4, action: 'Review contraindications to HRT', status: 'pending', considerations: ['Family breast cancer history', 'Thrombosis risk', 'Cardiovascular risk'] },
+      { step: 5, action: 'Discuss treatment options with patient', status: 'pending' },
+    ],
   },
   {
-    diagnosis: 'Thyroid Dysfunction',
+    diagnosis: 'Hypothyroidism',
     icd10: 'E03.9',
-    confidence: 38,
-    aiAccuracy: 91,
-    reasoning: 'Symptom overlap with hypothyroidism. Must rule out before attributing to perimenopause.',
+    likelihoodRatio: 2.1,
+    confidenceInterval: '1.2 - 3.8',
+    aiConfidence: 91,
+    reasoning: 'Significant symptom overlap with perimenopause. Must rule out before attributing symptoms to menopause transition.',
+    
+    symptomIncidence: [
+      { symptom: 'Fatigue', patientHas: true, incidence: 92, note: 'Cardinal symptom' },
+      { symptom: 'Weight gain', patientHas: true, incidence: 78, note: 'Due to decreased metabolic rate' },
+      { symptom: 'Cognitive changes (brain fog)', patientHas: true, incidence: 72, note: 'Common complaint' },
+      { symptom: 'Cold intolerance', patientHas: false, incidence: 68, note: 'Not reported — argues against' },
+      { symptom: 'Constipation', patientHas: false, incidence: 64, note: 'Not reported' },
+      { symptom: 'Dry skin', patientHas: false, incidence: 76, note: 'Not reported' },
+      { symptom: 'Depression/mood changes', patientHas: true, incidence: 60, note: 'Present but pattern atypical' },
+      { symptom: 'Menstrual irregularity', patientHas: false, incidence: 58, note: 'Patient has regular cycles' },
+      { symptom: 'Hair loss', patientHas: false, incidence: 52, note: 'Not reported' },
+    ],
+    
     supportingEvidence: [
       { type: 'symptom', text: 'Fatigue, cognitive changes, mood instability' },
-      { type: 'symptom', text: 'Weight gain (+4 lbs)' },
+      { type: 'symptom', text: 'Weight gain (+4 lbs over 6 months)' },
     ],
     againstEvidence: [
-      { type: 'history', text: 'No personal/family thyroid history' },
-      { type: 'history', text: 'Historical TSH always normal (baseline 1.8)' },
-      { type: 'pattern', text: 'Symptom pattern better fits hormone fluctuation than steady thyroid decline' },
+      { type: 'history', text: 'No personal or family thyroid history' },
+      { type: 'history', text: 'Historical TSH always normal (baseline 1.8 mIU/L)' },
+      { type: 'symptom', text: 'No cold intolerance, constipation, or dry skin' },
+      { type: 'pattern', text: 'Symptom onset/pattern better fits hormone fluctuation than steady thyroid decline' },
     ],
+    
+    assessmentCriteria: {
+      ruleIn: [
+        { criterion: 'TSH > 4.5 mIU/L', status: 'pending', description: 'Results expected before visit' },
+        { criterion: 'Free T4 < 0.8 ng/dL', status: 'pending', description: 'Would confirm if TSH elevated' },
+        { criterion: 'Positive TPO antibodies', status: 'not ordered', description: 'Would suggest Hashimoto\'s if TSH abnormal' },
+      ],
+      ruleOut: [
+        { criterion: 'TSH within normal limits', status: 'pending', description: 'If TSH normal, diagnosis effectively ruled out' },
+        { criterion: 'Absence of classic hypothyroid signs', status: 'met', description: 'No goiter, no delayed reflexes, no periorbital edema' },
+      ],
+    },
+    
+    recommendedWorkup: [
+      { test: 'TSH', priority: 'high', rationale: 'Primary screening test (pending)' },
+      { test: 'Free T4', priority: 'high', rationale: 'Confirms diagnosis if TSH abnormal (pending)' },
+      { test: 'TPO antibodies', priority: 'low', rationale: 'Only if TSH elevated — identifies autoimmune etiology' },
+    ],
+    
+    clinicalDecisionSteps: [
+      { step: 1, action: 'Review TSH results when available', status: 'pending' },
+      { step: 2, action: 'If TSH > 4.5: Check Free T4, consider TPO antibodies', status: 'conditional' },
+      { step: 3, action: 'If TSH normal: Rule out hypothyroidism, focus on perimenopause', status: 'conditional' },
+      { step: 4, action: 'Compare to patient baseline TSH (1.8)', status: 'pending', note: 'Even "normal" TSH that\'s elevated from baseline may be significant' },
+    ],
+    
     ruleOut: true,
-    action: 'TSH, Free T4 pending — results will clarify',
   },
   {
     diagnosis: 'Major Depressive Disorder',
     icd10: 'F32.9',
-    confidence: 28,
-    aiAccuracy: 88,
-    reasoning: 'Mood symptoms present but pattern suggests hormone-related vs primary depression.',
+    likelihoodRatio: 1.4,
+    confidenceInterval: '0.8 - 2.4',
+    aiConfidence: 88,
+    reasoning: 'Mood symptoms present, but temporal pattern and symptom cluster suggest hormone-related mood changes rather than primary depressive disorder.',
+    
+    symptomIncidence: [
+      { symptom: 'Depressed mood', patientHas: false, incidence: 96, note: 'Not prominently reported — irritability instead' },
+      { symptom: 'Anhedonia', patientHas: false, incidence: 84, note: 'Not reported — argues strongly against' },
+      { symptom: 'Sleep disturbance', patientHas: true, incidence: 88, note: 'Present but pattern (3am waking) more typical of perimenopause' },
+      { symptom: 'Fatigue', patientHas: true, incidence: 92, note: 'Present' },
+      { symptom: 'Concentration difficulty', patientHas: true, incidence: 78, note: 'Present' },
+      { symptom: 'Appetite/weight change', patientHas: true, incidence: 72, note: 'Weight gain present but gradual' },
+      { symptom: 'Psychomotor changes', patientHas: false, incidence: 58, note: 'Not observed' },
+      { symptom: 'Guilt/worthlessness', patientHas: false, incidence: 68, note: 'Not reported' },
+      { symptom: 'Suicidal ideation', patientHas: false, incidence: 52, note: 'Denied' },
+    ],
+    
     supportingEvidence: [
-      { type: 'symptom', text: 'Mood changes, irritability' },
-      { type: 'history', text: 'Anxiety disorder (2018)' },
+      { type: 'symptom', text: 'Mood changes, irritability present' },
+      { type: 'history', text: 'History of anxiety disorder (2018)' },
+      { type: 'symptom', text: 'Sleep disruption and fatigue' },
     ],
     againstEvidence: [
-      { type: 'pattern', text: 'Symptoms correlate with hormone timeline' },
-      { type: 'medication', text: 'Stable on SSRI with good prior control' },
-      { type: 'symptom', text: 'No anhedonia, suicidal ideation, or appetite change' },
+      { type: 'pattern', text: 'Symptom onset correlates with hormone changes, not life stressors' },
+      { type: 'medication', text: 'Stable on SSRI (Escitalopram 10mg) with good prior control' },
+      { type: 'symptom', text: 'No anhedonia — still enjoying activities' },
+      { type: 'symptom', text: 'No suicidal ideation, guilt, or worthlessness' },
+      { type: 'symptom', text: 'Irritability > sadness — more typical of hormone fluctuation' },
+    ],
+    
+    assessmentCriteria: {
+      ruleIn: [
+        { criterion: 'DSM-5: 5+ symptoms for 2+ weeks', status: 'not met', description: 'Only 3 of 9 criteria clearly present' },
+        { criterion: 'PHQ-9 score ≥ 10', status: 'not assessed', description: 'Formal screening recommended' },
+        { criterion: 'Symptoms cause significant impairment', status: 'partial', description: 'Work impact reported but functioning maintained' },
+      ],
+      ruleOut: [
+        { criterion: 'Symptoms better explained by medical condition', status: 'likely', description: 'Perimenopause more likely given hormone changes and symptom pattern' },
+        { criterion: 'No anhedonia or persistent depressed mood', status: 'met', description: 'Core features of MDD absent' },
+        { criterion: 'Current treatment effective for baseline anxiety', status: 'met', description: 'SSRI controlling prior anxiety symptoms' },
+      ],
+    },
+    
+    recommendedWorkup: [
+      { test: 'PHQ-9', priority: 'high', rationale: 'Formal depression screening to quantify severity' },
+      { test: 'GAD-7', priority: 'high', rationale: 'Assess anxiety component given history' },
+      { test: 'Review SSRI adequacy', priority: 'medium', rationale: 'Consider dose optimization if mood symptoms persist after HRT trial' },
+    ],
+    
+    clinicalDecisionSteps: [
+      { step: 1, action: 'Administer PHQ-9 and GAD-7', status: 'pending' },
+      { step: 2, action: 'If PHQ-9 < 10 and symptoms correlate with cycle: Attribute to perimenopause', status: 'conditional' },
+      { step: 3, action: 'If PHQ-9 ≥ 10: Consider MDD comorbid with perimenopause', status: 'conditional' },
+      { step: 4, action: 'Trial HRT first — reassess mood at 6-week follow-up', status: 'recommended' },
+      { step: 5, action: 'If mood symptoms persist after HRT: Adjust SSRI or add therapy', status: 'contingent' },
+    ],
+  },
+  {
+    diagnosis: 'Generalized Anxiety Disorder (Exacerbation)',
+    icd10: 'F41.1',
+    likelihoodRatio: 1.8,
+    confidenceInterval: '1.0 - 3.2',
+    aiConfidence: 85,
+    reasoning: 'Patient has history of anxiety disorder (2018, managed). Current symptoms could represent exacerbation, though hormone-related anxiety is more likely given timing.',
+    
+    symptomIncidence: [
+      { symptom: 'Excessive worry', patientHas: true, incidence: 94, note: 'Some worry about symptoms reported' },
+      { symptom: 'Restlessness', patientHas: true, incidence: 76, note: 'Present' },
+      { symptom: 'Fatigue', patientHas: true, incidence: 82, note: 'Present' },
+      { symptom: 'Difficulty concentrating', patientHas: true, incidence: 78, note: 'Present' },
+      { symptom: 'Irritability', patientHas: true, incidence: 74, note: 'Prominent symptom' },
+      { symptom: 'Sleep disturbance', patientHas: true, incidence: 88, note: 'Present' },
+      { symptom: 'Muscle tension', patientHas: false, incidence: 72, note: 'Not prominently reported' },
+      { symptom: 'Palpitations', patientHas: true, incidence: 62, note: 'Present — prompted urgent care visit' },
+    ],
+    
+    supportingEvidence: [
+      { type: 'history', text: 'Diagnosed anxiety disorder (2018)' },
+      { type: 'symptom', text: 'Palpitations, restlessness, worry' },
+      { type: 'symptom', text: 'Sleep disruption' },
+    ],
+    againstEvidence: [
+      { type: 'medication', text: 'Previously well-controlled on current SSRI dose' },
+      { type: 'pattern', text: 'New symptom cluster began with hormone changes' },
+      { type: 'pattern', text: 'Anxiety symptoms cyclical, not constant' },
+    ],
+    
+    assessmentCriteria: {
+      ruleIn: [
+        { criterion: 'GAD-7 score ≥ 10', status: 'not assessed', description: 'Formal screening needed' },
+        { criterion: 'Symptoms present most days for 6+ months', status: 'unclear', description: 'Recent exacerbation vs new onset unclear' },
+        { criterion: 'Symptoms not better explained by another condition', status: 'not met', description: 'Perimenopause likely explanatory' },
+      ],
+      ruleOut: [
+        { criterion: 'Symptoms better explained by medical condition', status: 'likely', description: 'Hormone-related anxiety more probable' },
+        { criterion: 'Current treatment was previously effective', status: 'met', description: 'SSRI controlled symptoms until recent months' },
+      ],
+    },
+    
+    recommendedWorkup: [
+      { test: 'GAD-7', priority: 'high', rationale: 'Quantify current anxiety severity' },
+      { test: 'Review medication timing', priority: 'medium', rationale: 'Ensure compliance and timing consistent' },
+    ],
+    
+    clinicalDecisionSteps: [
+      { step: 1, action: 'Administer GAD-7', status: 'pending' },
+      { step: 2, action: 'If GAD-7 elevated: Distinguish primary GAD exacerbation vs hormone-related anxiety', status: 'conditional' },
+      { step: 3, action: 'Trial HRT — often resolves hormone-related anxiety', status: 'recommended' },
+      { step: 4, action: 'If anxiety persists after HRT: Consider SSRI dose increase', status: 'contingent' },
     ],
   },
 ];
@@ -615,6 +796,7 @@ export default function MDDashboardV2() {
   const [showResponseModal, setShowResponseModal] = useState(null);
   const [responseText, setResponseText] = useState('');
   const [showVisitDetail, setShowVisitDetail] = useState(null);
+  const [dxDetailView, setDxDetailView] = useState(null);
 
   // ============ TAB CONTENT RENDERERS ============
 
@@ -1051,75 +1233,288 @@ export default function MDDashboardV2() {
     </div>
   );
 
-  // Differential Tab
-  const renderDifferentialTab = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <Card title="Differential Diagnosis" headerAction={
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', color: colors.textMuted }}>Incorporating AI pattern analysis</span>
-          <Badge variant="success">92% top confidence</Badge>
-        </div>
-      }>
-        {differentialDiagnosis.map((dx, i) => (
-          <div key={i} style={{ marginBottom: '16px', border: `2px solid ${i === 0 ? colors.primary : colors.border}`, borderRadius: '12px', overflow: 'hidden' }}>
-            <div 
-              onClick={() => setExpandedDx(expandedDx === i ? -1 : i)}
-              style={{ padding: '16px', backgroundColor: i === 0 ? `${colors.primary}08` : colors.card, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+  // Differential Tab with enhanced detail view
+  const renderDifferentialTab = () => {
+    // Helper for LR visualization
+    const getLRColor = (lr) => {
+      if (lr >= 10) return colors.success;
+      if (lr >= 5) return colors.primary;
+      if (lr >= 2) return colors.warning;
+      return colors.textMuted;
+    };
+    
+    const getLRLabel = (lr) => {
+      if (lr >= 10) return 'Strong';
+      if (lr >= 5) return 'Moderate';
+      if (lr >= 2) return 'Weak';
+      return 'Minimal';
+    };
+
+    const getLRBarWidth = (lr) => {
+      const maxLR = Math.max(...differentialDiagnosis.map(d => d.likelihoodRatio));
+      return `${(Math.log(lr + 1) / Math.log(maxLR + 1)) * 100}%`;
+    };
+
+    // Detail view for a single diagnosis
+    if (dxDetailView !== null) {
+      const dx = differentialDiagnosis[dxDetailView];
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Back button and header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button
+              onClick={() => setDxDetailView(null)}
+              style={{ padding: '8px 16px', backgroundColor: colors.divider, border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: colors.text, display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: i === 0 ? colors.primary : colors.divider, color: i === 0 ? 'white' : colors.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '700' }}>{i + 1}</div>
-                <div>
-                  <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: colors.text }}>{dx.diagnosis}</h4>
-                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: colors.textMuted }}>ICD-10: {dx.icd10}</p>
-                </div>
+              ← Back to Differential
+            </button>
+            {dx.ruleOut && <Badge variant="error">RULE OUT</Badge>}
+          </div>
+
+          {/* Diagnosis header */}
+          <Card>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h2 style={{ margin: '0 0 4px', fontSize: '22px', fontWeight: '700', color: colors.text }}>{dx.diagnosis}</h2>
+                <p style={{ margin: 0, fontSize: '13px', color: colors.textMuted }}>ICD-10: {dx.icd10}</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                {dx.ruleOut && <Badge variant="error">RULE OUT</Badge>}
-                <div style={{ textAlign: 'right' }}>
-                  <p style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: i === 0 ? colors.primary : colors.text }}>{dx.confidence}%</p>
-                  <p style={{ margin: 0, fontSize: '10px', color: colors.textMuted }}>AI accuracy: {dx.aiAccuracy}%</p>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                  <span style={{ fontSize: '36px', fontWeight: '700', color: getLRColor(dx.likelihoodRatio) }}>{dx.likelihoodRatio.toFixed(1)}</span>
+                  <span style={{ fontSize: '14px', color: colors.textMuted }}>LR</span>
                 </div>
-                <span style={{ fontSize: '16px', color: colors.textMuted }}>{expandedDx === i ? '▼' : '▶'}</span>
+                <p style={{ margin: '4px 0 0', fontSize: '12px', color: colors.textMuted }}>95% CI: {dx.confidenceInterval}</p>
+                <Badge variant={getLRLabel(dx.likelihoodRatio) === 'Strong' ? 'success' : getLRLabel(dx.likelihoodRatio) === 'Moderate' ? 'info' : 'warning'}>
+                  {getLRLabel(dx.likelihoodRatio)} Evidence
+                </Badge>
               </div>
             </div>
-            {expandedDx === i && (
-              <div style={{ padding: '16px', borderTop: `1px solid ${colors.border}` }}>
-                <div style={{ marginBottom: '16px' }}>
-                  <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: '600', color: colors.textMuted }}>CLINICAL REASONING</p>
-                  <p style={{ margin: 0, fontSize: '13px', color: colors.text, lineHeight: '1.5' }}>{dx.reasoning}</p>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div>
-                    <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: '600', color: '#166534' }}>✓ SUPPORTING EVIDENCE</p>
-                    {dx.supportingEvidence.map((e, j) => (
-                      <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '6px' }}>
-                        <Badge variant={e.type === 'lab' ? 'info' : e.type === 'pattern' ? 'accent' : e.type === 'symptom' ? 'warning' : 'default'} size="small">{e.type}</Badge>
-                        <span style={{ fontSize: '12px', color: colors.text }}>{e.text}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div>
-                    <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: '600', color: '#991B1B' }}>✗ AGAINST</p>
-                    {dx.againstEvidence.map((e, j) => (
-                      <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '6px' }}>
-                        <Badge variant="default" size="small">{e.type}</Badge>
-                        <span style={{ fontSize: '12px', color: colors.text }}>{e.text}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {dx.action && (
-                  <div style={{ marginTop: '12px', padding: '10px', backgroundColor: '#FEF3C7', borderRadius: '8px' }}>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#92400E' }}>⚡ <strong>Action:</strong> {dx.action}</p>
-                  </div>
-                )}
+            <div style={{ marginTop: '16px', padding: '12px', backgroundColor: colors.divider, borderRadius: '8px' }}>
+              <p style={{ margin: 0, fontSize: '13px', color: colors.text, lineHeight: '1.6' }}>{dx.reasoning}</p>
+            </div>
+          </Card>
+
+          {/* Symptom Incidence Table */}
+          <Card title="Symptom Incidence" headerAction={<span style={{ fontSize: '11px', color: colors.textMuted }}>How often each symptom appears with this diagnosis</span>}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {/* Header */}
+              <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 100px 80px', gap: '12px', padding: '8px 12px', backgroundColor: colors.divider, borderRadius: '6px', fontSize: '11px', fontWeight: '600', color: colors.textMuted }}>
+                <span>PT</span>
+                <span>SYMPTOM</span>
+                <span style={{ textAlign: 'center' }}>INCIDENCE</span>
+                <span style={{ textAlign: 'right' }}>FREQ</span>
               </div>
-            )}
+              {/* Rows */}
+              {dx.symptomIncidence.map((s, i) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 100px 80px', gap: '12px', padding: '10px 12px', backgroundColor: s.patientHas ? `${colors.success}10` : 'transparent', borderRadius: '6px', alignItems: 'center', border: `1px solid ${s.patientHas ? colors.success : colors.border}` }}>
+                  <span style={{ fontSize: '16px' }}>{s.patientHas ? '✓' : '−'}</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: '13px', fontWeight: '500', color: colors.text }}>{s.symptom}</p>
+                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: colors.textMuted }}>{s.note}</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ flex: 1, height: '6px', backgroundColor: colors.divider, borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${s.incidence}%`, height: '100%', backgroundColor: s.incidence >= 80 ? colors.success : s.incidence >= 60 ? colors.primary : colors.warning, borderRadius: '3px' }} />
+                    </div>
+                  </div>
+                  <span style={{ textAlign: 'right', fontSize: '14px', fontWeight: '600', color: s.incidence >= 80 ? colors.success : s.incidence >= 60 ? colors.primary : colors.warning }}>{s.incidence}%</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: '12px', padding: '10px', backgroundColor: '#DBEAFE', borderRadius: '6px' }}>
+              <p style={{ margin: 0, fontSize: '11px', color: '#1E40AF' }}>
+                <strong>PT</strong> = Patient has this symptom | <strong>Incidence</strong> = % of patients with this diagnosis who have this symptom
+              </p>
+            </div>
+          </Card>
+
+          {/* Two column layout for evidence and criteria */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            {/* Supporting / Against Evidence */}
+            <Card title="Clinical Evidence">
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: '600', color: '#166534' }}>✓ SUPPORTING</p>
+                {dx.supportingEvidence.map((e, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
+                    <Badge variant={e.type === 'lab' ? 'info' : e.type === 'pattern' ? 'accent' : e.type === 'symptom' ? 'warning' : 'default'} size="small">{e.type}</Badge>
+                    <span style={{ fontSize: '12px', color: colors.text, lineHeight: '1.4' }}>{e.text}</span>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: '600', color: '#991B1B' }}>✗ AGAINST</p>
+                {dx.againstEvidence.map((e, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
+                    <Badge variant="default" size="small">{e.type}</Badge>
+                    <span style={{ fontSize: '12px', color: colors.text, lineHeight: '1.4' }}>{e.text}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Assessment Criteria */}
+            <Card title="Assessment Criteria">
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: '600', color: colors.success }}>CRITERIA TO RULE IN</p>
+                {dx.assessmentCriteria.ruleIn.map((c, i) => (
+                  <div key={i} style={{ padding: '10px', backgroundColor: c.status === 'met' ? '#DCFCE7' : c.status === 'likely' ? '#FEF3C7' : colors.divider, borderRadius: '6px', marginBottom: '8px', border: `1px solid ${c.status === 'met' ? '#86EFAC' : c.status === 'likely' ? '#FDE68A' : colors.border}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: '600', color: colors.text }}>{c.criterion}</span>
+                      <Badge variant={c.status === 'met' ? 'success' : c.status === 'likely' ? 'warning' : c.status === 'pending' ? 'pending' : 'default'} size="small">{c.status}</Badge>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '11px', color: colors.textMuted }}>{c.description}</p>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: '600', color: colors.alert }}>CRITERIA TO RULE OUT</p>
+                {dx.assessmentCriteria.ruleOut.map((c, i) => (
+                  <div key={i} style={{ padding: '10px', backgroundColor: c.status === 'met' ? '#FEE2E2' : c.status === 'likely' ? '#FEF3C7' : colors.divider, borderRadius: '6px', marginBottom: '8px', border: `1px solid ${c.status === 'met' ? '#FECACA' : c.status === 'likely' ? '#FDE68A' : colors.border}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: '600', color: colors.text }}>{c.criterion}</span>
+                      <Badge variant={c.status === 'met' ? 'error' : c.status === 'likely' ? 'warning' : c.status === 'pending' ? 'pending' : 'default'} size="small">{c.status}</Badge>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '11px', color: colors.textMuted }}>{c.description}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
           </div>
-        ))}
-      </Card>
-    </div>
-  );
+
+          {/* Recommended Workup */}
+          <Card title="Recommended Workup">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+              {dx.recommendedWorkup.map((w, i) => (
+                <div key={i} style={{ padding: '14px', backgroundColor: w.priority === 'high' ? '#FEF3C7' : colors.divider, borderRadius: '8px', border: w.priority === 'high' ? `2px solid ${colors.warning}` : `1px solid ${colors.border}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '600', color: colors.text }}>{w.test}</span>
+                    <Badge variant={w.priority === 'high' ? 'error' : w.priority === 'medium' ? 'warning' : 'default'} size="small">{w.priority}</Badge>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '12px', color: colors.textMuted }}>{w.rationale}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Clinical Decision Steps */}
+          <Card title="Clinical Decision Steps">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {dx.clinicalDecisionSteps.map((step, i) => (
+                <div key={i} style={{ display: 'flex', gap: '14px', padding: '12px', backgroundColor: step.status === 'pending' ? colors.divider : step.status === 'recommended' ? '#DCFCE7' : '#DBEAFE', borderRadius: '8px' }}>
+                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: step.status === 'recommended' ? colors.success : colors.primary, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>{step.step}</div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontSize: '13px', fontWeight: '500', color: colors.text }}>{step.action}</p>
+                    {step.questions && (
+                      <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'white', borderRadius: '6px' }}>
+                        {step.questions.map((q, j) => <p key={j} style={{ margin: '2px 0', fontSize: '11px', color: colors.textMuted }}>• {q}</p>)}
+                      </div>
+                    )}
+                    {step.considerations && (
+                      <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'white', borderRadius: '6px' }}>
+                        {step.considerations.map((c, j) => <p key={j} style={{ margin: '2px 0', fontSize: '11px', color: colors.textMuted }}>• {c}</p>)}
+                      </div>
+                    )}
+                    {step.note && <p style={{ margin: '6px 0 0', fontSize: '11px', color: colors.primary, fontStyle: 'italic' }}>{step.note}</p>}
+                  </div>
+                  <Badge variant={step.status === 'pending' ? 'pending' : step.status === 'recommended' ? 'success' : step.status === 'conditional' ? 'info' : 'default'} size="small">{step.status}</Badge>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    // Summary view - list of all diagnoses
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <Card title="Differential Diagnosis" headerAction={
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <span style={{ fontSize: '12px', color: colors.textMuted }}>Ranked by Likelihood Ratio</span>
+            <Badge variant="success">AI Confidence: {differentialDiagnosis[0].aiConfidence}%</Badge>
+          </div>
+        }>
+          <p style={{ margin: '0 0 16px', fontSize: '12px', color: colors.textMuted }}>
+            Click any diagnosis to see symptom incidence, assessment criteria, and clinical decision steps.
+          </p>
+          {differentialDiagnosis.map((dx, i) => (
+            <div 
+              key={i} 
+              onClick={() => setDxDetailView(i)}
+              style={{ marginBottom: '12px', border: `2px solid ${i === 0 ? colors.primary : colors.border}`, borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', transition: 'all 0.2s ease' }}
+            >
+              <div style={{ padding: '16px', backgroundColor: i === 0 ? `${colors.primary}08` : colors.card, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: i === 0 ? colors.primary : colors.divider, color: i === 0 ? 'white' : colors.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '700' }}>{i + 1}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: colors.text }}>{dx.diagnosis}</h4>
+                      {dx.ruleOut && <Badge variant="error">RULE OUT</Badge>}
+                    </div>
+                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: colors.textMuted }}>ICD-10: {dx.icd10}</p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                  {/* LR Bar */}
+                  <div style={{ width: '100px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '10px', color: colors.textMuted }}>{getLRLabel(dx.likelihoodRatio)}</span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', backgroundColor: colors.divider, borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: getLRBarWidth(dx.likelihoodRatio), height: '100%', backgroundColor: getLRColor(dx.likelihoodRatio), borderRadius: '3px' }} />
+                    </div>
+                  </div>
+                  {/* LR Value */}
+                  <div style={{ textAlign: 'right', minWidth: '80px' }}>
+                    <p style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: getLRColor(dx.likelihoodRatio) }}>{dx.likelihoodRatio.toFixed(1)}</p>
+                    <p style={{ margin: 0, fontSize: '10px', color: colors.textMuted }}>LR (CI: {dx.confidenceInterval})</p>
+                  </div>
+                  {/* Arrow */}
+                  <span style={{ fontSize: '18px', color: colors.textMuted }}>→</span>
+                </div>
+              </div>
+              {/* Quick preview */}
+              <div style={{ padding: '12px 16px', backgroundColor: colors.divider, borderTop: `1px solid ${colors.border}`, display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '11px', color: colors.textMuted }}>
+                  <strong style={{ color: colors.success }}>✓ {dx.supportingEvidence.length}</strong> supporting
+                </span>
+                <span style={{ fontSize: '11px', color: colors.textMuted }}>
+                  <strong style={{ color: colors.alert }}>✗ {dx.againstEvidence.length}</strong> against
+                </span>
+                <span style={{ fontSize: '11px', color: colors.textMuted }}>
+                  <strong style={{ color: colors.primary }}>{dx.symptomIncidence.filter(s => s.patientHas).length}/{dx.symptomIncidence.length}</strong> symptoms present
+                </span>
+                <span style={{ fontSize: '11px', color: colors.textMuted }}>
+                  <strong style={{ color: colors.warning }}>{dx.recommendedWorkup.filter(w => w.priority === 'high').length}</strong> high-priority tests
+                </span>
+              </div>
+            </div>
+          ))}
+        </Card>
+
+        {/* Quick summary of pending items */}
+        <Card title="Pending Items Across All Diagnoses" headerAction={<Badge variant="warning">Action Required</Badge>}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+            <div style={{ padding: '14px', backgroundColor: '#FEF3C7', borderRadius: '8px' }}>
+              <p style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: '600', color: '#92400E' }}>Pending Labs</p>
+              <p style={{ margin: 0, fontSize: '13px', color: '#78350F' }}>TSH + Free T4</p>
+              <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#92400E' }}>Required to rule out thyroid dysfunction</p>
+            </div>
+            <div style={{ padding: '14px', backgroundColor: '#FEF3C7', borderRadius: '8px' }}>
+              <p style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: '600', color: '#92400E' }}>Assessments Needed</p>
+              <p style={{ margin: 0, fontSize: '13px', color: '#78350F' }}>PHQ-9, GAD-7</p>
+              <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#92400E' }}>Formal mood/anxiety screening</p>
+            </div>
+            <div style={{ padding: '14px', backgroundColor: '#FEF3C7', borderRadius: '8px' }}>
+              <p style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: '600', color: '#92400E' }}>Pre-Treatment</p>
+              <p style={{ margin: 0, fontSize: '13px', color: '#78350F' }}>Mammogram</p>
+              <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#92400E' }}>Required before HRT initiation</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  };
 
   // Visit Prep Tab
   const renderPrepTab = () => (
